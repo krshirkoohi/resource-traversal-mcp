@@ -1,6 +1,7 @@
-# Resource Traversal MCP — The Universal Web Key
+# Resource Traversal MCP - The Universal Web Key
 
 **Vision:** Transforming static pointers into live cognitive portals.
+
 **Developer:** Kavia Shirkoohi (shirkoohi.com)
 
 ## What It Does
