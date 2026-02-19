@@ -1,0 +1,14 @@
+# Ignore auth profiles (contain sensitive cookies)
+.auth/
+
+# Dependencies
+node_modules/
+
+# Bun lockfile
+bun.lock
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
