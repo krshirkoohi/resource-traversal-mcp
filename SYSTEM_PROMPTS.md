@@ -31,4 +31,9 @@ If a specialized extraction (e.g., for ChatGPT or Slack) returns empty or clearl
 3.  **Inspect & Adapt:** 
     - Use the raw text to identify new patterns (e.g., "The user's name is now inside a span with class 'x-user-123' instead of the old selector").
     - If the user is a developer, propose a specific surgical update to `lib/extractors.ts` based on the newly discovered selectors.
-4.  **Continuous Maintenance:** Treat every failed extraction as a diagnostic event rather than a simple error. The goal is to keep the "portal" open through intelligent adaptation.
+## 7. Latency & User Communication (Managing Expectations)
+> *"When initiating `traverse_resource` for heavy SPAs (Discord, Slack, AI Chats, etc.), the AI must proactively manage user expectations regarding 'Cold Start' latency."*
+
+1.  **Acknowledge the Initialization:** If a traversal is expected to take more than a few seconds (the first load of a session), the AI should explicitly inform the user: *"Launching the browser and waiting for the session to hydrate..."*
+2.  **Separate the Phases:** Understand that a "hang" is often just the browser initializing the hardware-locked Chromium profile and the SPA's heavy JavaScript layer. 
+3.  **Transparency over Silence:** Never leave the user in the dark during the 30-60 second hydration window. Communicating the state of the "Live Portal" reduces perceived friction and prevents premature cancellations.

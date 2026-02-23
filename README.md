@@ -82,7 +82,9 @@ While the Resource Traversal MCP is highly advanced, users should be aware of th
 3.  **Brittle Selectors:** Web apps update their layouts frequently. If a service like Gemini or Slack changes its internal code, a specialised extractor may return incomplete results until updated. 
     - **Future Roadmap:** We are working on a "Self-Healing" update system that allows the AI to dynamically identify new selectors when a breakage is detected.
 3.  **Session Expiry:** Cookies eventually expire. If the AI hits a login wall, it will proactively notify you with instructions to run `bun run auth [URL]` to refresh your "Master Profile."
-4.  **Temporal Loading:** Large histories (especially in Slack or long chats) require significant scrolling. The AI is configured to "walk back" through history, but extremely large threads may take several seconds to fully traverse.
+5.  **Cold Start Latency (Session Hydration):** When first launching a traversal for heavy SPAs like **Discord** or **Slack**, there is an inherent "Cold Start" delay (30-60 seconds). This occurs as the Native Chromium Headless engine initializes the hardware-locked OS profile, navigates the URL, and waits for the application's heavy JavaScript layer (React/Electron) to hydrate the DOM.
+    - **Pro-Tip for AI Agents:** Agents should proactively notify the user when they are "Launching the browser and waiting for the session to hydrate" to manage expectations during this initialization phase.
+6.  **Temporal Loading:** Large histories (especially in Slack or long chats) require significant scrolling. The AI is configured to "walk back" through history, but extremely large threads may take several seconds to fully traverse.
 
 ## ⚠️ Disclaimer
 
