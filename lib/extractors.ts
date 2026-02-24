@@ -15,7 +15,7 @@ export const SERVICE_PATTERNS = {
     chatgpt: /^https:\/\/chatgpt\.com\/c\//,
     grok: /^https:\/\/grok\.com\/c\//,
     discord: /^https:\/\/discord\.com\/channels\//,
-    slack: /^https:\/\/app\.slack\.com\/client\//,
+    slack: /^https:\/\/([a-z0-9-]+\.)?slack\.com\/(client|archives)\//,
     raindrop: /^https:\/\/app\.raindrop\.io\/my\//,
 } as const;
 
@@ -136,19 +136,27 @@ export async function extractGrok(page: Page): Promise<string> {
  * Extract content from Slack
  */
 export async function extractSlack(page: Page): Promise<string> {
+    const url = page.url();
+    const isDirectMessage = /p\d{16}/.test(url);
+
     // Wait for messages to load
     await page.waitForSelector('.c-message_kit__message, [role="listitem"]', { timeout: 15000 }).catch(() => { });
     
-    // Aggressive scroll up to load more history
-    console.error('📜 Loading Slack history...');
-    for (let i = 0; i < 15; i++) {
-        await page.evaluate(() => {
-            const scroller = document.querySelector('.c-scrollbar__hider') || 
-                             document.querySelector('.c-virtual_list__scroll_container') ||
-                             window;
-            (scroller as HTMLElement).scrollTop = 0;
-        });
-        await page.waitForTimeout(800);
+    if (!isDirectMessage) {
+        // Aggressive scroll up to load more history
+        console.error('📜 Loading Slack history...');
+        for (let i = 0; i < 15; i++) {
+            await page.evaluate(() => {
+                const scroller = document.querySelector('.c-scrollbar__hider') || 
+                                 document.querySelector('.c-virtual_list__scroll_container') ||
+                                 window;
+                (scroller as HTMLElement).scrollTop = 0;
+            });
+            await page.waitForTimeout(800);
+        }
+    } else {
+        console.error('📍 Direct Slack message detected. Skipping aggressive scroll to maintain focus.');
+        await page.waitForTimeout(3000); // Give it a bit more time to scroll to the target message
     }
 
     const messages = await page.evaluate(() => {

@@ -6,16 +6,16 @@
 
 ## What It Does
 
-The Resource Traversal MCP gives your AI "eyes" and "keys" on the authenticated web. Instead of relying on fragile or restricted APIs, it uses **Native Chromium Headless Architecture** to inherit your existing browser sessions.
+The Resource Traversal MCP gives your AI "eyes" and "keys" on the authenticated web. In a modern workflow, **Tana is the Skeleton** (Structure), **Google is the Muscle** (Data), and this engine is the **Connective Tissue** that allows AI to move fluidly between them.
 
-If you can see it in your browser (Gemini, ChatGPT, Discord, Slack, GitHub, etc.), your AI can now "traverse" it as a first-class observer.
+Instead of relying on fragile or restricted APIs, it uses **Native Chromium Headless Architecture** to inherit your existing browser sessions. If you can see it in your browser, your AI can now "traverse" it as a first-class observer.
 
 ## Core Breakthroughs
 
 1.  **Unified Auth Layer:** AI inherits your permissions via a local "Master Profile" (.auth/ folder). No API keys or developer accounts required.
 2.  **Native Chromium Stealth:** Uses `--headless=new` with hardware-locked OS encryption (macOS Keychain / Windows DPAPI) to remain undetectable by CloudFlare and advanced bot detection.
 3.  **Temporal Navigation:** Specialised scrolling logic for SPAs (Single Page Applications) to capture full conversation histories, not just the visible screen.
-4.  **Autonomous Barrier Handling:** Built-in logic to detect and bypass **Cookie Consent Walls** and **Slack/App Redirects** automatically, ensuring the AI never gets stuck at a "digital gate."
+4.  **The "Grand Slam" Proof:** Verified success across high-friction "Hard Targets" including **Slack, Discord, Linear, Jira, and Google Workspace**.
 5.  **Implicit Contextual Portals:** Designed to treat *any* URL in Tana as a live expansion of the AI's memory.
 
 ## Prerequisites

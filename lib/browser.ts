@@ -26,7 +26,7 @@ const BROWSER_ARGS = [
     '--disable-blink-features=AutomationControlled',
     '--disable-infobars',
     '--window-size=1920,1080',
-    '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36', // Use a modern, realistic UA
+    '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', // Use a modern, realistic UA
 ];
 
 const IGNORE_DEFAULT_ARGS = ['--enable-automation'];
@@ -36,8 +36,8 @@ const IGNORE_DEFAULT_ARGS = ['--enable-automation'];
  * Cookies and session data will be saved to the profile directory
  */
 export async function launchForAuth(startUrl: string = 'https://accounts.google.com'): Promise<void> {
-    console.log('🔐 Launching browser for authentication...');
-    console.log(`📁 Profile will be saved to: ${PROFILE_DIR}`);
+    console.error('🔐 Launching browser for authentication...');
+    console.error(`📁 Profile will be saved to: ${PROFILE_DIR}`);
 
     const context = await chromium.launchPersistentContext(PROFILE_DIR, {
         headless: false,
@@ -56,17 +56,17 @@ export async function launchForAuth(startUrl: string = 'https://accounts.google.
 
     await page.goto(startUrl);
 
-    console.log('');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('✋ Please log in to the services you want to use (Google, Discord, etc.)');
-    console.log('   Once logged in, close the browser window to save the session.');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('');
+    console.error('');
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('✋ Please log in to the services you want to use (Google, Discord, etc.)');
+    console.error('   Once logged in, close the browser window to save the session.');
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('');
 
     // Wait for the browser to be closed by the user (timeout: 5 minutes)
     await context.waitForEvent('close', { timeout: 300000 });
 
-    console.log('✅ Authentication complete. Session saved.');
+    console.error('✅ Authentication complete. Session saved.');
 }
 
 /**
@@ -103,7 +103,7 @@ export async function fetchAuthenticated(url: string, headless: boolean = true):
         const pageContent = await page.content();
         
         if (pageContent.includes('open this link in your browser') || pageContent.includes('use Slack in your browser')) {
-            console.log('🔗 Slack redirect detected. Forcing browser mode...');
+            console.error('🔗 Slack redirect detected. Forcing browser mode...');
             try {
                 const browserLink = await page.$('a:has-text("open this link in your browser"), a:has-text("use Slack in your browser"), .p-download_app__use_browser');
                 if (browserLink) {
@@ -111,12 +111,12 @@ export async function fetchAuthenticated(url: string, headless: boolean = true):
                     await page.waitForTimeout(5000);
                 }
             } catch (e) {
-                console.log('⚠️ Failed to click Slack browser link...');
+                console.error('⚠️ Failed to click Slack browser link...');
             }
         }
 
         if (pageContent.includes('ACCEPT ALL COOKIES') || pageContent.includes('Cookie Consent Manager')) {
-            console.log('🛡️  Consent wall detected. Bypassing...');
+            console.error('🛡️  Consent wall detected. Bypassing...');
             try {
                 for (const frame of page.frames()) {
                     const button = await frame.$('button:has-text("ACCEPT ALL COOKIES"), button:has-text("Agree and proceed")');
@@ -127,7 +127,7 @@ export async function fetchAuthenticated(url: string, headless: boolean = true):
                     }
                 }
             } catch (e) {
-                console.log('⚠️ Failed to handle consent wall...');
+                console.error('⚠️ Failed to handle consent wall...');
             }
         }
 
@@ -182,7 +182,7 @@ export async function fetchWithExtractor(
         const pageContent = await page.content();
         
         if (pageContent.includes('open this link in your browser') || pageContent.includes('use Slack in your browser')) {
-            console.log('🔗 Slack redirect detected. Forcing browser mode...');
+            console.error('🔗 Slack redirect detected. Forcing browser mode...');
             try {
                 const browserLink = await page.$('a:has-text("open this link in your browser"), a:has-text("use Slack in your browser"), .p-download_app__use_browser');
                 if (browserLink) {
@@ -190,12 +190,12 @@ export async function fetchWithExtractor(
                     await page.waitForTimeout(5000);
                 }
             } catch (e) {
-                console.log('⚠️ Failed to click Slack browser link...');
+                console.error('⚠️ Failed to click Slack browser link...');
             }
         }
 
         if (pageContent.includes('ACCEPT ALL COOKIES') || pageContent.includes('Cookie Consent Manager')) {
-            console.log('🛡️  Consent wall detected. Bypassing...');
+            console.error('🛡️  Consent wall detected. Bypassing...');
             try {
                 for (const frame of page.frames()) {
                     const button = await frame.$('button:has-text("ACCEPT ALL COOKIES"), button:has-text("Agree and proceed")');
@@ -206,12 +206,12 @@ export async function fetchWithExtractor(
                     }
                 }
             } catch (e) {
-                console.log('⚠️ Failed to handle consent wall...');
+                console.error('⚠️ Failed to handle consent wall...');
             }
         }
 
         const title = await page.title();
-        console.log(`🌐 (Extractor) Loaded: ${url}`);
+        console.error(`🌐 (Extractor) Loaded: ${url}`);
         const content = await extractor(page);
 
         return { title, content };

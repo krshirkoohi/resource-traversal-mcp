@@ -37,3 +37,10 @@ If a specialized extraction (e.g., for ChatGPT or Slack) returns empty or clearl
 1.  **Acknowledge the Initialization:** If a traversal is expected to take more than a few seconds (the first load of a session), the AI should explicitly inform the user: *"Launching the browser and waiting for the session to hydrate..."*
 2.  **Separate the Phases:** Understand that a "hang" is often just the browser initializing the hardware-locked Chromium profile and the SPA's heavy JavaScript layer. 
 3.  **Transparency over Silence:** Never leave the user in the dark during the 30-60 second hydration window. Communicating the state of the "Live Portal" reduces perceived friction and prevents premature cancellations.
+
+## 8. The "Symmetry" Vision (The Live Knowledge Graph)
+The ultimate goal of this framework is **Cognitive Symmetry**. Whether the user is working in a local code repository, a Tana daily planner, or a mobile chat interface, the agent must share the same "brain" and "eyes." 
+
+- **From Pointers to Portals:** Move from "dead" URLs to "live" data hydration.
+- **Universal Interface:** Prepare for a future where this knowledge graph is accessible via mobile (Telegram) or voice, maintaining the same secure local auth layer.
+- **Unified Skills:** Ensure that all agent skills (slide generation, Tana search, resource traversal) are symmetrically available across all environments.
