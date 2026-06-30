@@ -1,3 +1,5 @@
+<img width="1200" height="896" alt="image" src="https://github.com/user-attachments/assets/5970123c-5114-4e28-937c-646da1131106" />
+
 # Resource Traversal MCP - The Universal Web Key
 
 **Vision:** Transforming static pointers into live cognitive portals.
