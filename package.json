@@ -7,7 +7,8 @@
     "scripts": {
         "start": "bun run index.ts",
         "dev": "bun --watch index.ts",
-        "auth": "bun run scripts/auth-setup.ts"
+        "auth": "bun run scripts/auth-setup.ts",
+        "test": "bun run test-suite.ts"
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.30.0",
