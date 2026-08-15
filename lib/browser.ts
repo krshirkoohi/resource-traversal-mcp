@@ -63,8 +63,8 @@ export async function launchForAuth(startUrl: string = 'https://accounts.google.
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.error('');
 
-    // Wait for the browser to be closed by the user (timeout: 5 minutes)
-    await context.waitForEvent('close', { timeout: 300000 });
+    // Wait for the browser to be closed by the user (timeout: 15 minutes)
+    await context.waitForEvent('close', { timeout: 900000 });
 
     console.error('✅ Authentication complete. Session saved.');
 }
@@ -94,7 +94,7 @@ export async function fetchAuthenticated(url: string, headless: boolean = true):
         });
         // --------------------------------------------------
 
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
         // Wait a bit for dynamic content to load
         await page.waitForTimeout(2000);
@@ -173,7 +173,7 @@ export async function fetchWithExtractor(
         });
         // --------------------------------------------------
 
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
         // Wait for dynamic content
         await page.waitForTimeout(5000);

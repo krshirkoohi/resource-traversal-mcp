@@ -10,5 +10,8 @@ bun.lock
 # Logs
 *.log
 
+# Scratch test files
+run-traverse.ts
+
 # OS files
 .DS_Store

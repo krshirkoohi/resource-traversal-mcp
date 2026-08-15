@@ -108,8 +108,8 @@ export async function extractGrok(page: Page): Promise<string> {
             const text = (el as HTMLElement).innerText.trim();
             if (text && text.length > 5) {
                 // Determine author
-                const container = el.closest('[class*="message"]');
-                const isUser = container?.innerText.includes('You') || el.parentElement?.innerText.includes('You');
+                const container = el.closest('[class*="message"]') as HTMLElement | null;
+                const isUser = container?.innerText.includes('You') || (el.parentElement as HTMLElement)?.innerText.includes('You');
                 const author = isUser ? '**User:**' : '**Grok:**';
                 
                 if (!results.some(r => r.includes(text.substring(0, 50)))) {
@@ -124,8 +124,8 @@ export async function extractGrok(page: Page): Promise<string> {
     if (messages.length === 0) {
         // Fallback: get all main content
         return await page.evaluate(() => {
-            const main = document.querySelector('main') || document.body;
-            return main.innerText || '';
+            const main = (document.querySelector('main') || document.body) as HTMLElement;
+            return main?.innerText || main?.textContent || '';
         });
     }
 
