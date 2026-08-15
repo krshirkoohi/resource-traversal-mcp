@@ -8,22 +8,22 @@
 
 ## What It Does
 
-The Resource Traversal MCP gives your AI "eyes" and "keys" on the authenticated web. In a modern workflow, **Tana is the Skeleton** (Structure), **Google is the Muscle** (Data), and this engine is the **Connective Tissue** that allows AI to move fluidly between them.
+The Resource Traversal MCP gives your AI "eyes" and "keys" across the authenticated web. In a modern workflow, your **Command Centre (Notion / Notes) provides Structure**, your **Cloud & Repositories provide Data**, and this engine is the **Connective Tissue** that allows AI agents to traverse and inspect private web resources on demand.
 
-Instead of relying on fragile or restricted APIs, it uses **Native Chromium Headless Architecture** to inherit your existing browser sessions. If you can see it in your browser, your AI can now "traverse" it as a first-class observer.
+Instead of relying on fragile or restricted third-party APIs, it uses **Native Chromium Headless Architecture** to inherit your existing browser sessions. If you can see it in your browser, your AI can now "traverse" it as a first-class observer.
 
 ## Core Breakthroughs
 
-1.  **Unified Auth Layer:** AI inherits your permissions via a local "Master Profile" (.auth/ folder). No API keys or developer accounts required.
-2.  **Native Chromium Stealth:** Uses `--headless=new` with hardware-locked OS encryption (macOS Keychain / Windows DPAPI) to remain undetectable by CloudFlare and advanced bot detection.
-3.  **Temporal Navigation:** Specialised scrolling logic for SPAs (Single Page Applications) to capture full conversation histories, not just the visible screen.
-4.  **The "Grand Slam" Proof:** Verified success across high-friction "Hard Targets" including **Slack, Discord, Linear, Jira, and Google Workspace**.
-5.  **Implicit Contextual Portals:** Designed to treat *any* URL in Tana as a live expansion of the AI's memory.
+1. **Unified Auth Layer:** AI inherits your permissions via a local "Master Profile" (`.auth/` folder). No API keys or developer accounts required.
+2. **Native Chromium Stealth:** Uses `--headless=new` with hardware-locked OS encryption (macOS Keychain / Windows DPAPI) to remain undetectable by CloudFlare and advanced bot detection.
+3. **Temporal Navigation:** Specialised scrolling logic for SPAs (Single Page Applications) to capture full conversation histories, not just the visible viewport.
+4. **Universal Portals:** Verified success across high-friction targets including **Notion, Slack, Discord, Linear, Jira, Gemini, ChatGPT, and Google Workspace**.
+5. **Intelligent Fallback:** Any web link, documentation portal, or article is automatically extracted with noise, navigation menus, and cookie banners filtered out.
 
 ## Prerequisites
 
 Before starting, ensure you have the following installed on your local machine:
-- **Bun:** The fast JavaScript runtime (`curl -fsSL https://bun.sh/install | bash`).
+- **Bun:** Fast JavaScript runtime (`curl -fsSL https://bun.sh/install | bash`).
 - **Google Chrome:** Required for the Native Headless engine.
 
 ## Quick Start
@@ -38,27 +38,28 @@ Unlock any site for your AI in seconds:
 ```bash
 bun run auth [URL]
 ```
-*Example:* `bun run auth https://chatgpt.com`  
+*Example:* `bun run auth https://app.notion.com` or `bun run auth https://chatgpt.com`  
 Log in manually in the window that opens, then close the browser. Your session is now hardware-locked to your local machine for AI reuse.
 
-### 3. Add to Tana / Claude / Cursor
-Point your MCP client to the project's `index.ts` file.
+### 3. Add to Antigravity / Claude / Cursor / Windsurf
+Point your MCP client configuration to this directory or its `index.ts` entrypoint.
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
-| `traverse_resource` | Fetch content from *any* authenticated URL (Gemini, ChatGPT, Slack, etc.) |
+| `traverse_resource` | Fetch content from *any* authenticated or public URL (Notion, ChatGPT, Slack, Gemini, etc.) |
 | `check_auth` | Verify if a local "Master Profile" session exists |
 
-## Supported Portals (Verified)
+## Supported Portals & Extractors
 
-| Service | Capability |
-|---------|------------|
-| **AI Chats** | ✅ Gemini, ChatGPT, Grok (Full history scrolling) |
-| **Communities** | ✅ Discord, Slack (Archives, Threads, Real-time context) |
-| **Knowledge/Misc** | ✅ GitHub (Repos), 🧪 Raindrop.io (Experimental) |
-| **Productivity** | ✅ Google Docs, NotebookLM |
+| Category | Service | Capability |
+|:---|:---|:---|
+| **Workspaces & Notes** | ✅ **Notion** (`notion.so`, `notion.site`, `app.notion.com`), Google Docs, NotebookLM | Structural block formatting (headings, lists, toggles, callouts) |
+| **AI Chats** | ✅ Gemini, ChatGPT, Grok | Multi-turn dialogue extraction with deep history scroll-back |
+| **Communities & Comms** | ✅ Discord, Slack | Archives, channel threads, direct messages, real-time context |
+| **Knowledge & Bookmarks** | ✅ GitHub (Repos), 🧪 Raindrop.io (Experimental) | Repository code/issues, bookmark collections |
+| **Universal Fallback** | ✅ **Any Web URL / Article / Documentation** | Intelligent semantic parsing with automated boilerplate & cookie cleanup |
 
 ## 🏗️ Extensibility: Modular Extraction Framework
 
@@ -66,7 +67,7 @@ The project is designed as a **Modular Ecosystem**. You can easily add support f
 
 - **Plug-and-Play:** Adding a new portal takes only a few lines of code.
 - **AI-Driven Maintenance:** The included `SYSTEM_PROMPTS.md` contains a **Self-Healing Extraction Strategy**, allowing your AI agent to autonomously troubleshoot broken selectors and propose code updates to the framework.
-- **Universal Fallback:** If a specialized adapter doesn't exist, the tool utilizes an intelligent **Generic Scrape** to ensure no link is a dead end.
+- **Universal Fallback:** If a specialized adapter doesn't exist, the tool utilizes an enhanced **Generic Scrape** to ensure no link is a dead end.
 
 ## 🔒 Privacy & Security
 
@@ -76,20 +77,9 @@ The project is designed as a **Modular Ecosystem**. You can easily add support f
 
 ## ⚠️ Potential Limitations
 
-While the Resource Traversal MCP is highly advanced, users should be aware of the following "Edge Cases":
-
-1.  **Shadow DOM & Canvases:** Some applications (notably **Google Docs**) do not store their text in the standard DOM. They "paint" text on a Canvas element, making it invisible to standard text extractors.
-    - **Pro-Tip:** For the best experience with Google Docs, we recommend connecting them via a dedicated API-based MCP server. Use the Resource Traversal MCP for "hard-to-reach" portals like Gemini, ChatGPT, and Slack where official APIs are limited or non-existent.
-2.  **Dynamic Session Persistence:** Certain services (notably **Raindrop.io**) employ unique session-locking mechanisms that occasionally require active user interaction even within the Master Profile. These are currently classified as "Experimental" as we refine the persistence handoff.
-3.  **Brittle Selectors:** Web apps update their layouts frequently. If a service like Gemini or Slack changes its internal code, a specialised extractor may return incomplete results until updated. 
-    - **Future Roadmap:** We are working on a "Self-Healing" update system that allows the AI to dynamically identify new selectors when a breakage is detected.
-3.  **Session Expiry:** Cookies eventually expire. If the AI hits a login wall, it will proactively notify you with instructions to run `bun run auth [URL]` to refresh your "Master Profile."
-5.  **Cold Start Latency (Session Hydration):** When first launching a traversal for heavy SPAs like **Discord** or **Slack**, there is an inherent "Cold Start" delay (30-60 seconds). This occurs as the Native Chromium Headless engine initializes the hardware-locked OS profile, navigates the URL, and waits for the application's heavy JavaScript layer (React/Electron) to hydrate the DOM.
-    - **Pro-Tip for AI Agents:** Agents should proactively notify the user when they are "Launching the browser and waiting for the session to hydrate" to manage expectations during this initialization phase.
-6.  **Temporal Loading:** Large histories (especially in Slack or long chats) require significant scrolling. The AI is configured to "walk back" through history, but extremely large threads may take several seconds to fully traverse.
-
-## ⚠️ Disclaimer
-
-This tool is intended for personal research and knowledge management. Users are responsible for adhering to the Terms of Service of the websites they traverse.
+1. **Shadow DOM & Canvases:** Some applications (notably **Google Docs**) do not store text in the standard DOM; they paint text on Canvas elements. For Google Docs, dedicated API integrations are recommended where full raw fidelity is critical.
+2. **Brittle Selectors:** Web apps update their layouts periodically. If a service changes its internal class names, a specialised extractor falls back to the generic reader until updated.
+3. **Session Expiry:** Cookies eventually expire. If the AI hits a login wall, it will proactively provide instructions to run `bun run auth [URL]` to refresh your session.
+4. **Cold Start Latency (Session Hydration):** When first launching a traversal for heavy SPAs like **Notion**, **Discord**, or **Slack**, there is an initialization delay (30-60 seconds) while Native Chromium loads the hardware-locked OS profile and hydrates the DOM.
 
 ---

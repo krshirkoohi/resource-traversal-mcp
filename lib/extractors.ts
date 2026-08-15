@@ -16,6 +16,7 @@ export const SERVICE_PATTERNS = {
     grok: /^https:\/\/grok\.com\/c\//,
     discord: /^https:\/\/discord\.com\/channels\//,
     slack: /^https:\/\/([a-z0-9-]+\.)?slack\.com\/(client|archives)\//,
+    notion: /^https:\/\/([a-z0-9-]+\.)?(notion\.(so|site|com)|app\.notion\.com)\//,
     raindrop: /^https:\/\/app\.raindrop\.io\/my\//,
 } as const;
 
@@ -375,16 +376,137 @@ export async function extractRaindrop(page: Page): Promise<string> {
 }
 
 /**
- * Generic fallback extractor
+ * Extract content from Notion pages
+ */
+export async function extractNotion(page: Page): Promise<string> {
+    // Wait for Notion client-side hydration
+    console.error('⏳ Loading Notion page content...');
+    await page.waitForSelector('.notion-page-content, [data-block-id], .notion-selectable', { timeout: 20000 }).catch(() => { });
+    await page.waitForTimeout(3000);
+
+    const result = await page.evaluate(() => {
+        // Extract Title
+        const titleEl = document.querySelector('.notion-page-block h1, .notion-title, div[placeholder="Untitled"]') as HTMLElement | null;
+        const pageTitle = titleEl?.innerText?.trim() || document.title.replace(/\s*\|\s*Notion$/, '').trim();
+
+        // Extract Icon / Cover if present
+        const iconEl = document.querySelector('.notion-page-icon-hero, .notion-record-icon') as HTMLElement | null;
+        const iconText = iconEl?.innerText?.trim() || '';
+
+        // Find main page content container
+        const pageContent = document.querySelector('.notion-page-content') || document.querySelector('.notion-scroller') || document.querySelector('main') || document.body;
+
+        if (!pageContent) return '';
+
+        // Clone element to sanitize and preserve formatting without mutating live page
+        const clone = pageContent.cloneNode(true) as HTMLElement;
+
+        // Remove non-content UI elements: presence avatars, comment boxes, action buttons, sidebars
+        const unwanted = clone.querySelectorAll(
+            '.notion-presence-container, .notion-page-controls, .notion-help-button, .notion-overlay-container, ' +
+            'button, [role="button"], .notion-topbar, .notion-sidebar, [data-block-id*="comment"]'
+        );
+        unwanted.forEach(el => el.remove());
+
+        // Process blocks sequentially to format Markdown cleanly
+        const blocks = clone.querySelectorAll('[data-block-id], .notion-selectable');
+        if (blocks.length > 0) {
+            const lines: string[] = [];
+            if (pageTitle) {
+                lines.push(`# ${iconText ? iconText + ' ' : ''}${pageTitle}\n`);
+            }
+
+            blocks.forEach(block => {
+                const blockEl = block as HTMLElement;
+                const text = blockEl.innerText?.trim();
+                if (!text) return;
+
+                const classList = blockEl.className || '';
+                
+                if (classList.includes('header-block') && !classList.includes('sub_header') && !classList.includes('sub_sub_header')) {
+                    lines.push(`\n## ${text}\n`);
+                } else if (classList.includes('sub_header-block')) {
+                    lines.push(`\n### ${text}\n`);
+                } else if (classList.includes('sub_sub_header-block')) {
+                    lines.push(`\n#### ${text}\n`);
+                } else if (classList.includes('to_do-block')) {
+                    const checked = blockEl.querySelector('input[type="checkbox"]:checked, [aria-checked="true"]') !== null;
+                    lines.push(`- [${checked ? 'x' : ' '}] ${text}`);
+                } else if (classList.includes('bulleted_list-block')) {
+                    lines.push(`- ${text}`);
+                } else if (classList.includes('numbered_list-block')) {
+                    lines.push(`- ${text}`);
+                } else if (classList.includes('toggle-block')) {
+                    lines.push(`> **${text}**`);
+                } else if (classList.includes('callout-block') || classList.includes('quote-block')) {
+                    lines.push(`> ${text}`);
+                } else if (classList.includes('code-block')) {
+                    lines.push(`\`\`\`\n${text}\n\`\`\``);
+                } else {
+                    const hasProcessedParent = blockEl.parentElement?.closest('[data-block-id]');
+                    if (!hasProcessedParent) {
+                        lines.push(text);
+                    }
+                }
+            });
+
+            const output = lines.join('\n').trim();
+            if (output.length > 30) {
+                return output;
+            }
+        }
+
+        // Fallback if structured block query didn't yield enough
+        const mainText = (clone as HTMLElement).innerText || '';
+        return pageTitle ? `# ${pageTitle}\n\n${mainText}` : mainText;
+    });
+
+    if (!result || result.trim().length === 0) {
+        return await extractGeneric(page);
+    }
+
+    return result;
+}
+
+/**
+ * Universal fallback extractor for any web page, article, documentation, or web app
  */
 export async function extractGeneric(page: Page): Promise<string> {
-    return await page.evaluate(() => {
-        // Remove scripts, styles, and navigation
-        const remove = document.querySelectorAll('script, style, noscript, nav, header, footer');
-        remove.forEach(el => el.remove());
+    // Wait for client-side JavaScript rendering
+    await page.waitForTimeout(2000);
 
-        const main = (document.querySelector('main, article, [role="main"]') || document.body) as HTMLElement;
-        return main.innerText || '';
+    return await page.evaluate(() => {
+        const title = document.title || '';
+        
+        // Clone body to manipulate DOM safely
+        const clone = document.body.cloneNode(true) as HTMLElement;
+
+        // Remove boilerplate, ads, scripts, navbars, modals, cookies
+        const noiseSelectors = [
+            'script', 'style', 'noscript', 'nav', 'header', 'footer', 'svg', 'iframe',
+            '[aria-hidden="true"]', '[role="banner"]', '[role="navigation"]', '[role="dialog"]',
+            '.cookie-banner', '#cookie-banner', '.cookie-notice', '.advertisement', '.ads',
+            '.sidebar', '#sidebar', '.header', '.footer', '.menu', '#menu', '.modal', '.popup'
+        ];
+        
+        noiseSelectors.forEach(selector => {
+            clone.querySelectorAll(selector).forEach(el => el.remove());
+        });
+
+        // Find primary semantic article or content root
+        const contentCandidate = clone.querySelector('main, article, [role="main"], #content, .content, .post-content, .article-content, #main-content') as HTMLElement | null;
+        const target = contentCandidate || clone;
+
+        // Clean up empty lines and normalize whitespace
+        const rawText = target.innerText?.trim() || '';
+        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const cleanedText = lines.join('\n');
+
+        if (title && !cleanedText.startsWith(title)) {
+            return `# ${title}\n\n${cleanedText}`;
+        }
+
+        return cleanedText;
     });
 }
 
@@ -409,6 +531,8 @@ export function getExtractor(url: string): (page: Page) => Promise<string> {
             return extractDiscord;
         case 'slack':
             return extractSlack;
+        case 'notion':
+            return extractNotion;
         case 'raindrop':
             return extractRaindrop;
         default:
