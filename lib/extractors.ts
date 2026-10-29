@@ -379,34 +379,56 @@ export async function extractRaindrop(page: Page): Promise<string> {
  * Extract content from Notion pages
  */
 export async function extractNotion(page: Page): Promise<string> {
-    // Wait for Notion client-side hydration
+    // Wait for Notion client-side hydration on live HTTP(S) pages
     console.error('⏳ Loading Notion page content...');
-    await page.waitForSelector('.notion-page-content, [data-block-id], .notion-selectable', { timeout: 20000 }).catch(() => { });
-    await page.waitForTimeout(3000);
+    if (page.url().startsWith('http')) {
+        await page.waitForSelector('.notion-page-content, [data-block-id], .notion-selectable', { state: 'attached', timeout: 15000 }).catch(() => { });
+        await page.waitForTimeout(2500);
+    }
 
-    const result = await page.evaluate(() => {
+    const parsed = await page.evaluate(() => {
+        const bodyText = document.body?.innerText || '';
+        const hasBlocks = document.querySelectorAll('.notion-page-content [data-block-id], .notion-page-content .notion-selectable').length > 0;
+        if (
+            !hasBlocks &&
+            (bodyText.includes('Sign in to see this page') ||
+             bodyText.includes('You’re almost there!') ||
+             bodyText.includes("You're almost there!") ||
+             bodyText.includes('Log in to Notion'))
+        ) {
+            return { loginWall: true, content: '' };
+        }
+
         // Extract Title
-        const titleEl = document.querySelector('.notion-page-block h1, .notion-title, div[placeholder="Untitled"]') as HTMLElement | null;
+        const titleEl = document.querySelector('.notion-page-block h1, .notion-title, h1[placeholder="New page"], div[placeholder="Untitled"]') as HTMLElement | null;
         const pageTitle = titleEl?.innerText?.trim() || document.title.replace(/\s*\|\s*Notion$/, '').trim();
 
-        // Extract Icon / Cover if present
-        const iconEl = document.querySelector('.notion-page-icon-hero, .notion-record-icon') as HTMLElement | null;
+        // Extract Icon / Cover if present (only hero icon for page root, not sub-page record icons)
+        const iconEl = document.querySelector('.notion-page-icon-hero') as HTMLElement | null;
         const iconText = iconEl?.innerText?.trim() || '';
 
         // Find main page content container
         const pageContent = document.querySelector('.notion-page-content') || document.querySelector('.notion-scroller') || document.querySelector('main') || document.body;
 
-        if (!pageContent) return '';
+        if (!pageContent) return { loginWall: false, content: '' };
 
         // Clone element to sanitize and preserve formatting without mutating live page
         const clone = pageContent.cloneNode(true) as HTMLElement;
 
-        // Remove non-content UI elements: presence avatars, comment boxes, action buttons, sidebars
+        // Remove non-content UI elements without stripping [role="button"] used by live Notion page/toggle blocks
         const unwanted = clone.querySelectorAll(
             '.notion-presence-container, .notion-page-controls, .notion-help-button, .notion-overlay-container, ' +
-            'button, [role="button"], .notion-topbar, .notion-sidebar, [data-block-id*="comment"]'
+            '.notion-topbar, .notion-sidebar, .notion-selectable-hover-menu-item, [data-block-id*="comment"]'
         );
         unwanted.forEach(el => el.remove());
+
+        // Ensure record icons have a trailing space so emoji + title don't concatenate (e.g. "🌟What's New?")
+        clone.querySelectorAll('.notion-record-icon').forEach(icon => {
+            const el = icon as HTMLElement;
+            if (el.innerText && !el.innerText.endsWith(' ')) {
+                el.append(' ');
+            }
+        });
 
         // Process blocks sequentially to format Markdown cleanly
         const blocks = clone.querySelectorAll('[data-block-id], .notion-selectable');
@@ -418,11 +440,31 @@ export async function extractNotion(page: Page): Promise<string> {
 
             blocks.forEach(block => {
                 const blockEl = block as HTMLElement;
-                const text = blockEl.innerText?.trim();
+                const classList = blockEl.className || '';
+
+                // Skip outer page title block if inside scroller and pure layout container blocks
+                if (
+                    (classList.includes('notion-page-block') && blockEl.querySelector('h1')) ||
+                    classList.includes('column_list-block') ||
+                    classList.includes('column-block') ||
+                    classList.includes('synced_block-block') ||
+                    classList.includes('collection_view-block')
+                ) {
+                    return;
+                }
+
+                // Extract own text without duplicating nested [data-block-id] children
+                const blockClone = blockEl.cloneNode(true) as HTMLElement;
+                blockClone.querySelectorAll('[data-block-id], .notion-selectable').forEach(child => child.remove());
+                const text = blockClone.innerText?.replace(/\s+/g, ' ').trim();
+
+                if (classList.includes('divider-block')) {
+                    lines.push('\n---\n');
+                    return;
+                }
+
                 if (!text) return;
 
-                const classList = blockEl.className || '';
-                
                 if (classList.includes('header-block') && !classList.includes('sub_header') && !classList.includes('sub_sub_header')) {
                     lines.push(`\n## ${text}\n`);
                 } else if (classList.includes('sub_header-block')) {
@@ -432,40 +474,45 @@ export async function extractNotion(page: Page): Promise<string> {
                 } else if (classList.includes('to_do-block')) {
                     const checked = blockEl.querySelector('input[type="checkbox"]:checked, [aria-checked="true"]') !== null;
                     lines.push(`- [${checked ? 'x' : ' '}] ${text}`);
-                } else if (classList.includes('bulleted_list-block')) {
-                    lines.push(`- ${text}`);
-                } else if (classList.includes('numbered_list-block')) {
+                } else if (classList.includes('bulleted_list-block') || classList.includes('numbered_list-block')) {
                     lines.push(`- ${text}`);
                 } else if (classList.includes('toggle-block')) {
                     lines.push(`> **${text}**`);
                 } else if (classList.includes('callout-block') || classList.includes('quote-block')) {
                     lines.push(`> ${text}`);
                 } else if (classList.includes('code-block')) {
-                    lines.push(`\`\`\`\n${text}\n\`\`\``);
+                    const rawCode = blockClone.innerText?.trim() || text;
+                    lines.push(`\`\`\`\n${rawCode}\n\`\`\``);
+                } else if (classList.includes('page-block')) {
+                    lines.push(`- ${text}`);
                 } else {
-                    const hasProcessedParent = blockEl.parentElement?.closest('[data-block-id]');
-                    if (!hasProcessedParent) {
-                        lines.push(text);
-                    }
+                    lines.push(text);
                 }
             });
 
             const output = lines.join('\n').trim();
             if (output.length > 30) {
-                return output;
+                return { loginWall: false, content: output };
             }
         }
 
         // Fallback if structured block query didn't yield enough
         const mainText = (clone as HTMLElement).innerText || '';
-        return pageTitle ? `# ${pageTitle}\n\n${mainText}` : mainText;
+        return {
+            loginWall: false,
+            content: pageTitle ? `# ${pageTitle}\n\n${mainText}` : mainText
+        };
     });
 
-    if (!result || result.trim().length === 0) {
+    if (parsed.loginWall) {
+        throw new Error('Session expired: Sign in required to view this Notion page');
+    }
+
+    if (!parsed.content || parsed.content.trim().length === 0) {
         return await extractGeneric(page);
     }
 
-    return result;
+    return parsed.content;
 }
 
 /**

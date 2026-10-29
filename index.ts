@@ -24,7 +24,7 @@ import { getExtractor, detectService } from './lib/extractors';
 const server = new Server(
     {
         name: 'resource-traversal-mcp',
-        version: '1.0.0',
+        version: '1.1.0',
     },
     {
         capabilities: {

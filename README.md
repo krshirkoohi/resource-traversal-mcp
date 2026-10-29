@@ -21,7 +21,7 @@ Instead of relying on fragile or restricted third-party APIs, it utilizes a **Na
 1. **Unified Auth Layer:** AI inherits your permissions via a local "Master Profile" (`.auth/` folder). No API keys or developer accounts required.
 2. **Native Chromium Stealth:** Uses `--headless=new` with hardware-locked OS encryption (macOS Keychain / Windows DPAPI) to remain undetectable by Cloudflare and bot-protection walls.
 3. **Temporal Navigation:** Specialised scrolling logic for SPAs (Single Page Applications) to capture full multi-turn conversation histories and archived threads, not just the visible viewport.
-4. **Universal Web Traversal:** Verified success across high-friction targets including **Notion, Slack, Discord, Linear, Jira, Gemini, ChatGPT, Grok, and Google Workspace**.
+4. **Universal Web Traversal:** Verified success across high-friction targets including **Notion, Slack, Discord, Gemini, ChatGPT, Grok, Raindrop.io, and Google Workspace**.
 5. **Intelligent Fallback:** Any arbitrary web link, documentation portal, or article is automatically extracted with navigation menus, sidebars, cookie banners, and popups filtered out.
 
 ---
@@ -89,7 +89,7 @@ Add the server to your MCP client configuration (e.g. `claude_desktop_config.jso
   "mcpServers": {
     "resource-traversal": {
       "command": "bun",
-      "args": ["run", "/Users/krshirkoohi/github/agent/mcp-servers/resource-traversal-mcp/index.ts"]
+      "args": ["run", "/path/to/resource-traversal-mcp/index.ts"]
     }
   }
 }
@@ -135,10 +135,11 @@ The project is structured as a **Modular Ecosystem**:
 
 ---
 
-## ⚠️ Notes & Edge Cases
+## ⚠️ Honest Limitations & Edge Cases
 
-1. **Google Docs:** Text is rendered to a canvas element rather than standard DOM text. For Google Docs, dedicated Google Drive/Docs API MCP servers are recommended where character-level DOM fidelity is required.
-2. **Session Lifespans:** When session cookies expire, run `bun run auth [URL]` to refresh the session.
-3. **SPA Hydration Delay:** Heavy Single Page Applications (Notion, Slack, Discord) may take 15–30 seconds during initial cold-start hydration while React/Electron payloads load.
+1. **No Dedicated Linear or Jira Extractors:** `SERVICE_PATTERNS` only routes Notion, Gemini, ChatGPT, Grok, Slack, Discord, Google Docs, NotebookLM, and Raindrop.io. Other apps (such as Linear or Jira) have no custom DOM extractors and fall back to `extractGeneric`.
+2. **Google Docs Canvas Rendering:** Text in Google Docs is rendered to a `<canvas>` element rather than standard DOM nodes, making DOM text extraction unreliable. Use a dedicated Google Drive/Docs API MCP server where character-level fidelity is required.
+3. **Session Lifespans:** Local `.auth/` cookies eventually expire. When a login wall is encountered, run `bun run auth [URL]` to refresh the session.
+4. **SPA Hydration Delay:** Heavy Single Page Applications (Notion, Slack, Discord) may take 15–30 seconds during initial cold-start hydration while client bundles load.
 
 ---
